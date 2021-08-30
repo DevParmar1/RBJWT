@@ -20,35 +20,39 @@ exports.signin = (req,res) => {
               message: "Invalid Password!"
           });
       }
-
+      
       var token = jwt.sign({id: response.rows[0].id},config.secret,{
         expiresIn: 86400
       })
 
-      var authorities = [];
+      
+      
       pool
       .query('Select role_name from roles where user_id=$1', [response.rows[0].id])
       .then(result => {
+        var authorities = [];
           console.log(result.rows[0].role_name[0]);
           for(let i=0;i<result.rows[0].role_name.length; i++){
               authorities.push("ROLE_" + result.rows[0].role_name[i].toUpperCase());
               console.log("HEYY"+authorities);
           }
+          console.log(authorities);
+          res.status(200).send({
+            id: response.rows[0].id,
+            username: response.rows[0].name,
+            email: response.rows[0].email,
+            roles: authorities,
+            accessToken: token
+          });
       })
       .catch(err =>
         setImmediate(() => {
           throw err
         })
       )  
+     
+    
       
-      console.log(authorities);
-      res.status(200).send({
-        id: response.rows[0].id,
-        username: response.rows[0].name,
-        email: response.rows[0].email,
-        roles: authorities,
-        accessToken: token
-      });
       
 
     })
